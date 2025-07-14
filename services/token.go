@@ -86,7 +86,7 @@ func (svc *TokenServiceImpl) StoreTokenUUID(token *types.Token) error {
 }
 
 func (svc *TokenServiceImpl) ParseAccessToken(accessToken string) (*types.Token, error) {
-	parsedToken, err := ParseJwtToken(accessToken, config.Jwt().AccessTokenSecret)
+	parsedToken, err := methodutil.ParseJwtToken(accessToken, config.Jwt().AccessTokenSecret)
 	if err != nil {
 		return nil, errutil.ErrParseJwt
 	}
@@ -113,18 +113,7 @@ func (svc *TokenServiceImpl) ReadUserIDFromAccessTokenUUID(accessTokenUuid strin
 	}
 	return userID, nil
 }
-func ParseJwtToken(tokenString, secret string) (*jwt.Token, error) {
 
-	keyFunc := func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, errutil.ErrInvalidJwtSigningMethod
-		}
-		return []byte(secret), nil
-	}
-
-	return jwt.Parse(tokenString, keyFunc)
-
-}
 func mapClaimsToToken(claims jwt.MapClaims) (*types.Token, error) {
 
 	jsonData, err := json.Marshal(claims)
