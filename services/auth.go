@@ -5,7 +5,7 @@ import (
 	"ems/domain"
 	"ems/types"
 	"fmt"
-
+	"github.com/labstack/gommon/log"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -98,4 +98,11 @@ func (authSvc *AuthServiceImpl) VerifyAccessToken(tokenString string) (*types.Us
 
 	return userInfo, token, nil
 
+}
+func (authSvc *AuthServiceImpl) Logout(accessTokenUuid, refreshTokenUuid string) error {
+	var token = &types.Token{AccessUuid: accessTokenUuid, RefreshUuid: refreshTokenUuid}
+	if err := authSvc.tokenSvc.DeleteTokenUUID(token); err != nil {
+		log.Printf("Token deletion error: %v", err)
+	}
+	return nil
 }

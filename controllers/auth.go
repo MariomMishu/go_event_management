@@ -2,8 +2,10 @@ package controllers
 
 import (
 	"ems/domain"
+	"ems/middlewares"
 	"ems/types"
 	"ems/utils/msgutil"
+	"github.com/labstack/gommon/log"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -40,22 +42,17 @@ func (ctrl *AuthController) Login(c echo.Context) error {
 }
 
 func (ctrl *AuthController) Logout(c echo.Context) error {
+	// Call the auth service logout
 
-	accessUUID, ok := c.Get("access_uuid").(string)
-	if !ok || accessUUID == "" {
-		return c.JSON(http.StatusBadRequest, msgutil.InvalidRequestMsg())
+	currentUser, err := middlewares.CurrentUserFromContext(c)
+	if err != nil {
+		return c.JSON(http.StatusUnauthorized, msgutil.UserUnauthorized())
 	}
 
-	refreshUUID, ok := c.Get("refresh_uuid").(string)
-	if !ok || refreshUUID == "" {
-		return c.JSON(http.StatusBadRequest, msgutil.InvalidRequestMsg())
+	if err := ctrl.authSvc.Logout(currentUser.AccessUuid, currentUser.RefreshUuid); err != nil {
+		log.Printf("Logout failed: %v", err)
+		return c.JSON(http.StatusInternalServerError, msgutil.SomethingWentWrongMsg())
 	}
 
-	// Delete access token UUID from cache
-	//if err := ctrl.cache.Del(context.Background(), accessUUID).Err(); err != nil {
-	//	// Log error but continue
-	//	// log.Printf("Failed to delete access token UUID: %v", err)
-	//}
-
-	return c.JSON(http.StatusOK, msgutil.LogoutSuccessfully())
+	return c.NoContent(http.StatusOK)
 }

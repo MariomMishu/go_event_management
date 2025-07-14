@@ -4,6 +4,7 @@ import (
 	"ems/config"
 	"ems/types"
 	"ems/utils/errutil"
+	"ems/utils/methodutil"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -135,4 +136,13 @@ func mapClaimsToToken(claims jwt.MapClaims) (*types.Token, error) {
 		return nil, fmt.Errorf("error unmarshalling JSON to Token: %v", err)
 	}
 	return &token, nil
+}
+func (svc *TokenServiceImpl) DeleteTokenUUID(token *types.Token) error {
+	err := svc.redisSvc.Delete(methodutil.AccessUuidCacheKey(token.AccessUuid), methodutil.RefreshUuidCacheKey(token.RefreshUuid))
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

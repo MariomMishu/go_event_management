@@ -39,5 +39,5 @@ func (r *Route) Init() {
 	user.POST("", r.userCtrl.CreateUser, r.authMiddleware.Authenticate(consts.PermissionUserCreate))
 	auth := g.Group("/auth")
 	auth.POST("/login", r.authCtrl.Login)
-	auth.POST("/logout", nil)
+	auth.POST("/logout", r.authCtrl.Logout, r.authMiddleware.Authenticate(""))
 }

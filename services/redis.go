@@ -61,3 +61,6 @@ func (svc *RedisService) GetStruct(key string, outputStruct interface{}) error {
 	}
 	return nil
 }
+func (svc *RedisService) Delete(keys ...string) error {
+	return svc.client.Del(keys...).Err()
+}
