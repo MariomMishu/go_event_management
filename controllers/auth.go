@@ -40,5 +40,22 @@ func (ctrl *AuthController) Login(c echo.Context) error {
 }
 
 func (ctrl *AuthController) Logout(c echo.Context) error {
+
+	accessUUID, ok := c.Get("access_uuid").(string)
+	if !ok || accessUUID == "" {
+		return c.JSON(http.StatusBadRequest, msgutil.InvalidRequestMsg())
+	}
+
+	refreshUUID, ok := c.Get("refresh_uuid").(string)
+	if !ok || refreshUUID == "" {
+		return c.JSON(http.StatusBadRequest, msgutil.InvalidRequestMsg())
+	}
+
+	// Delete access token UUID from cache
+	//if err := ctrl.cache.Del(context.Background(), accessUUID).Err(); err != nil {
+	//	// Log error but continue
+	//	// log.Printf("Failed to delete access token UUID: %v", err)
+	//}
+
 	return c.JSON(http.StatusOK, msgutil.LogoutSuccessfully())
 }

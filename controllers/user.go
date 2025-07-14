@@ -70,3 +70,22 @@ func (ctrl *UserController) GetProfile(c echo.Context) error {
 		RoleID:    user.RoleID,
 	})
 }
+
+func (ctrl *UserController) CreateUser(c echo.Context) error {
+	var req types.CreateUserReq
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, msgutil.InvalidRequestMsg())
+	}
+	if err := req.Validate(); err != nil {
+		return c.JSON(http.StatusBadRequest, &types.ValidationError{
+			Error: err,
+		})
+	}
+	if err := ctrl.userSvc.CreateUser(&req); err != nil {
+		if errors.Is(err, errutil.ErrUserIsAlreadyExists) {
+			return c.JSON(http.StatusConflict, msgutil.UserAlreadyExists())
+		}
+		return c.JSON(http.StatusInternalServerError, msgutil.SomethingWentWrongMsg())
+	}
+	return c.JSON(http.StatusCreated, msgutil.UserCreatedSuccessfully())
+}
