@@ -5,10 +5,11 @@ import (
 )
 
 var (
+	ErrAlreadyExists             = errors.New("record already exists")
 	ErrRecordNotFound            = errors.New("record not found")
 	ErrInvalidInput              = errors.New("invalid input")
 	ErrUserIsAlreadyExists       = errors.New("user already exists")
-	ErrInvalidLoginCredentials   = errors.New("Invalid login credentials")
+	ErrInvalidLoginCredentials   = errors.New("invalid login credentials")
 	ErrAccessTokenSign           = errors.New("error signing access token")
 	ErrRefreshTokenSign          = errors.New("error signing refresh token")
 	ErrInvalidAuthorizationToken = errors.New("invalid authorization token")
