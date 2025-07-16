@@ -19,5 +19,6 @@ type (
 		UserCountByEmail(email string) (int, error)
 		ReadUserByEmail(email string) (*models.User, error)
 		ReadPermissionsByRole(roleID int) ([]*models.Permission, error)
+		ReadUsers(ids []int) ([]*models.User, error)
 	}
 )

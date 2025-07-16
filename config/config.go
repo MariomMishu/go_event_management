@@ -3,8 +3,9 @@ package config
 import "time"
 
 type AppConfig struct {
-	Name string
-	Port string
+	Name            string
+	Port            string
+	NumberOfWorkers int
 }
 type DbConfig struct {
 	Host            string
@@ -36,11 +37,16 @@ type JwtConfig struct {
 	AccessTokenExpiry  time.Duration
 	RefreshTokenExpiry time.Duration
 }
+type EmailConfig struct {
+	Url     string
+	Timeout time.Duration
+}
 type Config struct {
 	App   *AppConfig
 	DB    *DbConfig
 	Redis *RedisConfig
 	Jwt   *JwtConfig
+	Email *EmailConfig
 }
 
 var config Config
@@ -60,6 +66,10 @@ func Redis() *RedisConfig {
 func Jwt() *JwtConfig {
 	return config.Jwt
 }
+func Email() *EmailConfig {
+	return config.Email
+}
+
 func LoadConfig() {
 	// Set defaults or load from env
 	// config.App = &AppConfig{
@@ -69,8 +79,9 @@ func LoadConfig() {
 }
 func setDefaultConfig() {
 	config.App = &AppConfig{
-		Name: "EMS",
-		Port: "8080",
+		Name:            "EMS",
+		Port:            "8080",
+		NumberOfWorkers: 5,
 	}
 	config.DB = &DbConfig{
 		Host:            "127.0.0.1",

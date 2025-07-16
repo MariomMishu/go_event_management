@@ -35,6 +35,7 @@ func Serve(cmd *cobra.Command, args []string) {
 	userSvc := services.NewUserServiceImpl(dbRepo, redisSvc)
 	tokenSvc := services.NewTokenServiceImpl(redisSvc)
 	authSvc := services.NewAuthServiceImpl(userSvc, tokenSvc)
+	//mailSvc := services.NewMailService(dbRepo)
 	userCtrl := controllers.NewUserController(userSvc)
 	authCtrl := controllers.NewAuthController(authSvc)
 	// middlewares
