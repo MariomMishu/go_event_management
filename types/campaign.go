@@ -5,27 +5,45 @@ import (
 	"time"
 )
 
-type CampaignCreateRequest struct {
-	Title       string  `json:"title"`
-	Description string  `json:"description"`
-	Remarks     string  `json:"remarks"`
-	Status      string  `json:"status"`
-	StartTime   *string `json:"start_time"` // ISO8601 format recommended
-	EndTime     *string `json:"end_time"`   // ISO8601 format recommended
-	CreatedBy   int     `json:"created_by"`
-}
-
-type CampaignCreateResponse struct {
-	Campaign *models.Campaign `json:"campaign"`
-	Message  string           `json:"message"`
-}
+type (
+	CampaignCreateRequest struct {
+		Title       string  `json:"title"`
+		Description string  `json:"description"`
+		Remarks     string  `json:"remarks"`
+		Status      string  `json:"status"`
+		StartTime   *string `json:"start_time"` // ISO8601 format recommended
+		EndTime     *string `json:"end_time"`   // ISO8601 format recommended
+		CreatedBy   int     `json:"created_by"`
+	}
+	CampaignCreateResponse struct {
+		Campaign *models.Campaign `json:"campaign"`
+		Message  interface{}      `json:"message"`
+	}
+	CampaignUpdateRequest struct {
+		ID int `param:"id"`
+		CampaignCreateRequest
+	}
+	CampaignDeleteResponse struct {
+		Message string `json:"message"`
+	}
+	CampaignApproveRejectResponse struct {
+		Message string `json:"message"`
+	}
+	CampaignUpdateResponse struct {
+		Message  string           `json:"message"`
+		Campaign *models.Campaign `json:"campaign"`
+	}
+	CampaignCommonResponse struct {
+		Campaign *models.Campaign `json:"campaign"`
+		Message  string           `json:"message"`
+	}
+	CampaignCommonResponseList struct {
+		Campaign []*models.Campaign `json:"campaigns"`
+		Message  string             `json:"message"`
+	}
+)
 
 // If you need the second struct, rename it, for example:
-type CampaignCreateFullResponse struct {
-	Message  string           `json:"message"`
-	Campaign *models.Campaign `json:"campaign"`
-}
-type CampaignUpdateRequest struct{}
 
 func (createReq *CampaignCreateRequest) ToCampaignModel() *models.Campaign {
 	campaign := &models.Campaign{
@@ -42,6 +60,23 @@ func (createReq *CampaignCreateRequest) ToCampaignModel() *models.Campaign {
 	}
 	return campaign
 }
+
+func (updateReq *CampaignUpdateRequest) ToCampaignModel() *models.Campaign {
+	campaign := &models.Campaign{
+		Title:       updateReq.Title,
+		Description: updateReq.Description,
+		Remarks:     updateReq.Remarks,
+		CreatedBy:   updateReq.CreatedBy,
+	}
+	if updateReq.StartTime != nil {
+		campaign.StartTime, _ = parseTime(*updateReq.StartTime, time.RFC3339)
+	}
+	if updateReq.EndTime != nil {
+		campaign.EndTime, _ = parseTime(*updateReq.EndTime, time.RFC3339)
+	}
+	return campaign
+}
+
 func parseTime(timeStr string, format string) (*time.Time, error) {
 	t, err := time.Parse(format, timeStr)
 	if err != nil {

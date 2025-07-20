@@ -35,10 +35,17 @@ func InvalidRequestMsg() Data {
 func LogoutSuccessfully() Data {
 	return NewMessage().set("message", "Logout Successfully").Done()
 }
-
-func UserUnauthorized() Data {
-	return NewMessage().set("message", "User unauthorized").Done()
-}
+func UserUnauthorized() Data { return NewMessage().set("message", "User unauthorized").Done() }
 func AccessForbiddenMsg() Data {
 	return NewMessage().set("message", "Access forbidden").Done()
+}
+func CampaignCreatedSuccessfully() Data {
+	return NewMessage().set("message", "Campaign created successfully").Done()
+}
+func CampaignUpdatedSuccessfully() Data {
+	return NewMessage().set("message", "Campaign updated successfully").Done()
+}
+func CampaignNotFound() Data { return NewMessage().set("message", "Campaign not found").Done() }
+func CampaignDeletedSuccessfully() Data {
+	return NewMessage().set("message", "Campaign deleted successfully").Done()
 }

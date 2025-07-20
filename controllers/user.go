@@ -33,7 +33,7 @@ func (ctrl *UserController) SignUp(c echo.Context) error {
 	// if err := c.Validate(&req); err != nil {
 	// 	return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
 	// }
-	req.RoleId = consts.RoleIdAttendee
+	req.RoleId = consts.RoleIdCustomer
 	if err := req.Validate(); err != nil {
 		return c.JSON(http.StatusBadRequest, &types.ValidationError{
 			Error: err,

@@ -94,7 +94,11 @@ func (m *AuthMiddleware) Authenticate(permission string) echo.MiddlewareFunc {
 			c.Set(ContextKeyCurrentUser, currentUser)
 			// Set user ID and permissions in header
 			permissions, err := m.userSvc.ReadPermissionsByRole(currentUser.RoleID)
+			//for _, permission := range permissions {
+			//	fmt.Println(permission.Permission)
+			//}
 			if err != nil {
+
 				return c.JSON(http.StatusInternalServerError, msgutil.SomethingWentWrongMsg())
 			}
 			if permission != "" && !m.isPermissionAllowed(permission, permissions) {

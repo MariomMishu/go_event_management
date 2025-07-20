@@ -35,8 +35,11 @@ func Serve(cmd *cobra.Command, args []string) {
 	userSvc := services.NewUserServiceImpl(dbRepo, redisSvc)
 	tokenSvc := services.NewTokenServiceImpl(redisSvc)
 	authSvc := services.NewAuthServiceImpl(userSvc, tokenSvc)
+	campaignSvc := services.NewCampaignServiceImpl(dbRepo)
+
 	userCtrl := controllers.NewUserController(userSvc)
 	authCtrl := controllers.NewAuthController(authSvc)
+	campaignCtrl := controllers.NewCampaignController(campaignSvc)
 	// middlewares
 	authMiddleware := middlewares.NewAuthMiddleware(authSvc, userSvc)
 
@@ -44,7 +47,7 @@ func Serve(cmd *cobra.Command, args []string) {
 	echoServer := echo.New()
 	srv := server.New(echoServer)
 
-	routes := routes.New(echoServer, userCtrl, authCtrl, authMiddleware)
+	routes := routes.New(echoServer, userCtrl, authCtrl, campaignCtrl, authMiddleware)
 
 	routes.Init()
 	srv.Start()

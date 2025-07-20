@@ -10,16 +10,19 @@ import (
 )
 
 func (repo *Repository) CreateCampaign(campaign *models.Campaign) (*models.Campaign, error) {
-	err := repo.db.Create(campaign).Error
-	return campaign, err
+	qry := repo.db.Create(campaign)
+	if qry.Error != nil {
+		return nil, qry.Error
+	}
+	return campaign, nil
 }
 
-func (repo *Repository) ReadCampaignByTitle(title string) (*models.Campaign, error) {
-	var campaign models.Campaign
-	if err := repo.db.Model(&models.Campaign{}).Where("title = ?", title).First(&campaign).Error; err != nil {
-		return nil, err
+func (repo *Repository) ReadCampaignByTitle(title string) (bool, error) {
+	var count int64
+	if err := repo.db.Model(&models.Campaign{}).Where("title = ?", title).Count(&count).Error; err != nil {
+		return false, err
 	}
-	return &campaign, nil
+	return count > 0, nil
 
 }
 
@@ -61,8 +64,9 @@ func (repo *Repository) ListCampaigns() ([]*models.Campaign, error) {
 	return campaigns, nil
 }
 
-func (repo *Repository) ApproveCampaign(id int, updatedBy int) error {
+func (repo *Repository) ApproveRejectCampaign(id int, updatedBy int) error {
 	// Step 1: Update campaign status
+
 	qry := repo.db.Model(&models.Campaign{}).Where("id = ?", id).Updates(map[string]interface{}{
 		"status":     "Approved",
 		"updated_by": updatedBy,
