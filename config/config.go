@@ -66,9 +66,7 @@ func Redis() *RedisConfig {
 func Jwt() *JwtConfig {
 	return config.Jwt
 }
-func Email() *EmailConfig {
-	return config.Email
-}
+func Email() *EmailConfig { return config.Email }
 
 func LoadConfig() {
 	// Set defaults or load from env
