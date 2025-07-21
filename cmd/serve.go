@@ -37,6 +37,7 @@ func Serve(cmd *cobra.Command, args []string) {
 	authSvc := services.NewAuthServiceImpl(userSvc, tokenSvc)
 	campaignSvc := services.NewCampaignServiceImpl(dbRepo)
 
+	//mailSvc := services.NewMailService(dbRepo)
 	userCtrl := controllers.NewUserController(userSvc)
 	authCtrl := controllers.NewAuthController(authSvc)
 	campaignCtrl := controllers.NewCampaignController(campaignSvc)

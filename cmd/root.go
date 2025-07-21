@@ -30,6 +30,7 @@ func Execute() {
 
 	conn.ConnectDb()
 	conn.ConnectRedis()
+	conn.ConnectEmail()
 
 	if err := RootCmd.Execute(); err != nil {
 		fmt.Println(err)
