@@ -43,9 +43,9 @@ func (repo *Repository) ReadPermissionsByRole(roleID int) ([]*models.Permission,
 	return permissions, nil
 }
 
-func (repo *Repository) ReadUsers(ids []int) ([]*models.User, error) {
+func (repo *Repository) ReadUsers(roleIds []int) ([]*models.User, error) {
 	var users []*models.User
-	if err := repo.db.Model(&models.User{}).Where("id IN (?)", ids).Find(&users).Error; err != nil {
+	if err := repo.db.Model(&models.User{}).Where("role_id IN (?)", roleIds).Find(&users).Error; err != nil {
 		return nil, err
 	}
 	return users, nil

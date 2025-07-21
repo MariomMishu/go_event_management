@@ -1,7 +1,13 @@
 package domain
 
+import (
+	"ems/models"
+	"ems/types"
+)
+
 type (
 	MailService interface {
-		SendMail(userIds []int) error
+		SendEmail(requestData types.EmailPayload) error
+		SendCampaignEmail(roleIds []int, campaign *models.Campaign) error
 	}
 )

@@ -2,19 +2,24 @@ package services
 
 import (
 	"ems/domain"
+	"ems/models"
 	"ems/types"
 	"ems/utils/errutil"
 	"ems/utils/msgutil"
 	"errors"
+	"fmt"
+	"time"
 )
 
 type CampaignServiceImpl struct {
-	repo domain.CampaignRepository
+	repo    domain.CampaignRepository
+	mailSvc domain.MailService
 }
 
-func NewCampaignServiceImpl(campaignRepo domain.CampaignRepository) *CampaignServiceImpl {
+func NewCampaignServiceImpl(campaignRepo domain.CampaignRepository, mailSvc domain.MailService) *CampaignServiceImpl {
 	return &CampaignServiceImpl{
-		repo: campaignRepo,
+		repo:    campaignRepo,
+		mailSvc: mailSvc,
 	}
 }
 func (svc *CampaignServiceImpl) CreateCampaign(req *types.CampaignCreateRequest) (*types.CampaignCreateResponse, error) {
@@ -90,23 +95,6 @@ func (svc *CampaignServiceImpl) DeleteCampaign(campaignID int) (*types.CampaignD
 	}, nil
 }
 
-func (svc *CampaignServiceImpl) ApproveRejectCampaign(campaignID int, updatedBy int) (*types.CampaignApproveRejectResponse, error) {
-	existingCampaign, err := svc.repo.ReadCampaignByIdAndStatus(campaignID, "Draft")
-	if err != nil {
-		return nil, err
-	}
-	if existingCampaign == nil {
-		return nil, errutil.ErrRecordNotFound
-	}
-	err = svc.repo.ApproveRejectCampaign(campaignID, updatedBy)
-	if err != nil {
-		return nil, err
-	}
-	return &types.CampaignApproveRejectResponse{
-		Message: "Event Successful",
-	}, nil
-}
-
 func (svc *CampaignServiceImpl) ListCampaigns() (*types.CampaignCommonResponseList, error) {
 	campaigns, err := svc.repo.ListCampaigns()
 	if errors.Is(err, errutil.ErrRecordNotFound) {
@@ -119,4 +107,50 @@ func (svc *CampaignServiceImpl) ListCampaigns() (*types.CampaignCommonResponseLi
 		Message:  "Campaign List Fetched Successfully",
 		Campaign: campaigns,
 	}, nil
+}
+
+func (svc *CampaignServiceImpl) ApproveRejectCampaign(campaignID int, updatedBy int) (*types.CampaignApproveRejectResponse, error) {
+	existingCampaign, err := svc.repo.ReadCampaignByIdAndStatus(campaignID, "Draft")
+	if err != nil {
+		return nil, err
+	}
+	if existingCampaign == nil {
+		return nil, errutil.ErrRecordNotFound
+	}
+	err = svc.repo.ApproveRejectCampaign(campaignID, updatedBy)
+	if err != nil {
+		return nil, err
+	}
+	// Step 2: Audit Log
+	err = svc.logApprovalActivity(existingCampaign, updatedBy)
+	if err != nil {
+		// Log error but don't fail approval
+		fmt.Printf("Audit log failed for campaign Title %s: %v\n", existingCampaign.Title, err)
+	}
+	// Step 3: Send email notification
+	go func() {
+		err := svc.sendApprovalNotification(existingCampaign)
+		if err != nil {
+			fmt.Printf("Email notification failed for campaign Title %s: %v\n", existingCampaign.Title, err)
+		}
+	}()
+	return &types.CampaignApproveRejectResponse{
+		Message: "Event Successful",
+	}, nil
+}
+
+func (svc *CampaignServiceImpl) logApprovalActivity(campaign *models.Campaign, updatedBy int) error {
+	// You can store in a separate audit table or file
+	logEntry := fmt.Sprintf("Campaign Title %d approved by %s at %s", campaign.Title, updatedBy, time.Now().Format(time.RFC3339))
+	fmt.Println("[AUDIT]", logEntry)
+
+	// TODO: Save to DB table if required
+	return nil
+}
+
+func (svc *CampaignServiceImpl) sendApprovalNotification(campaign *models.Campaign) error {
+	// Fetch campaign details (optional)
+	var roleIds = []int{2, 3}
+	err := svc.mailSvc.SendCampaignEmail(roleIds, campaign)
+	return err
 }

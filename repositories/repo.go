@@ -1,8 +1,6 @@
 package repositories
 
 import (
-	"ems/models"
-
 	"gorm.io/gorm"
 )
 

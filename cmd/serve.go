@@ -27,7 +27,7 @@ func Serve(cmd *cobra.Command, args []string) {
 	// clients
 	dbClient := conn.Db()
 	redisClient := conn.Redis()
-
+	emailClient := conn.EmailClient()
 	// repositories
 	dbRepo := db_repo.NewRepository(dbClient)
 
@@ -35,9 +35,9 @@ func Serve(cmd *cobra.Command, args []string) {
 	userSvc := services.NewUserServiceImpl(dbRepo, redisSvc)
 	tokenSvc := services.NewTokenServiceImpl(redisSvc)
 	authSvc := services.NewAuthServiceImpl(userSvc, tokenSvc)
-	campaignSvc := services.NewCampaignServiceImpl(dbRepo)
+	mailSvc := services.NewMailService(dbRepo, emailClient)
+	campaignSvc := services.NewCampaignServiceImpl(dbRepo, mailSvc)
 
-	//mailSvc := services.NewMailService(dbRepo)
 	userCtrl := controllers.NewUserController(userSvc)
 	authCtrl := controllers.NewAuthController(authSvc)
 	campaignCtrl := controllers.NewCampaignController(campaignSvc)
