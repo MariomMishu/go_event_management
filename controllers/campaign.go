@@ -22,6 +22,7 @@ func NewCampaignController(campaignSvc domain.CampaignService) *CampaignControll
 		campaignSvc: campaignSvc,
 	}
 }
+
 func (ctrl *CampaignController) CreateCampaign(c echo.Context) error {
 	var req types.CampaignCreateRequest
 	if err := c.Bind(&req); err != nil {
@@ -41,6 +42,7 @@ func (ctrl *CampaignController) CreateCampaign(c echo.Context) error {
 	}
 	return c.JSON(http.StatusOK, resp)
 }
+
 func (ctrl *CampaignController) DeleteCampaign(c echo.Context) error {
 	id, err := strconv.Atoi(c.Param("id")) // Extracts the id parameter from the URL and Converts the string "12" to an integer 12 using strconv.Atoi.
 	if err != nil {
@@ -60,17 +62,22 @@ func (ctrl *CampaignController) DeleteCampaign(c echo.Context) error {
 	}
 	return c.JSON(http.StatusOK, resp)
 }
+
 func (ctrl *CampaignController) UpdateCampaign(c echo.Context) error {
 	var req types.CampaignUpdateRequest
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, msgutil.InvalidRequestMsg())
 	}
-	if err := c.Validate(&req); err != nil {
+	if err := v.Validate(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, &types.ValidationError{
 			Error: err,
 		})
 	}
-	resp, err := ctrl.campaignSvc.UpdateCampaign(&req)
+	user, err := middlewares.CurrentUserFromContext(c)
+	if err != nil {
+		return c.JSON(http.StatusUnauthorized, msgutil.UserUnauthorized())
+	}
+	resp, err := ctrl.campaignSvc.UpdateCampaign(&req, user.ID)
 	if errors.Is(err, errutil.ErrRecordNotFound) {
 		return c.JSON(http.StatusNotFound, msgutil.CampaignNotFound)
 	}
@@ -79,6 +86,7 @@ func (ctrl *CampaignController) UpdateCampaign(c echo.Context) error {
 	}
 	return c.JSON(http.StatusOK, resp)
 }
+
 func (ctrl *CampaignController) GetCampaignList(c echo.Context) error {
 	campaigns, err := ctrl.campaignSvc.ListCampaigns()
 	if err != nil {
@@ -86,6 +94,7 @@ func (ctrl *CampaignController) GetCampaignList(c echo.Context) error {
 	}
 	return c.JSON(http.StatusOK, campaigns)
 }
+
 func (ctrl *CampaignController) GetCampaignById(c echo.Context) error {
 	id, err := strconv.Atoi(c.Param("id")) // Extracts the id parameter from the URL and Converts the string "12" to an integer 12 using strconv.Atoi.
 	if err != nil {
@@ -105,15 +114,11 @@ func (ctrl *CampaignController) GetCampaignById(c echo.Context) error {
 	}
 	return c.JSON(http.StatusOK, resp)
 }
+
 func (ctrl *CampaignController) ApproveRejectCampaign(c echo.Context) error {
 	id, err := strconv.Atoi(c.Param("id")) // Extracts the id parameter from the URL and Converts the string "12" to an integer 12 using strconv.Atoi.
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, msgutil.InvalidRequestMsg()) // If the ID is not a valid number, return a 400 Bad Request with a custom message.
-	}
-	if err := v.Validate(id, v.Required); err != nil {
-		return c.JSON(http.StatusBadRequest, &types.ValidationError{
-			Error: err,
-		})
 	}
 	user, err := middlewares.CurrentUserFromContext(c)
 	if err != nil {

@@ -58,8 +58,9 @@ func (svc *CampaignServiceImpl) GetCampaignByID(campaignID int) (*types.Campaign
 	}, nil
 }
 
-func (svc *CampaignServiceImpl) UpdateCampaign(campaign *types.CampaignUpdateRequest) (*types.CampaignUpdateResponse, error) {
-	existingCampaign, err := svc.repo.ReadCampaignById(campaign.ID)
+func (svc *CampaignServiceImpl) UpdateCampaign(campaign *types.CampaignUpdateRequest, updatedBy int) (*types.CampaignUpdateResponse, error) {
+	// Read campaign with ID and status "Draft"
+	existingCampaign, err := svc.repo.ReadCampaignByIdAndStatus(campaign.ID, "Draft")
 	if err != nil {
 		return nil, err
 	}
@@ -67,6 +68,8 @@ func (svc *CampaignServiceImpl) UpdateCampaign(campaign *types.CampaignUpdateReq
 		return nil, errutil.ErrRecordNotFound
 	}
 	req := campaign.ToCampaignModel()
+	req.ID = existingCampaign.ID
+	req.UpdatedBy = updatedBy
 	updatedCampaign, err := svc.repo.UpdateCampaign(req)
 	if err != nil {
 		return nil, err
@@ -88,7 +91,14 @@ func (svc *CampaignServiceImpl) DeleteCampaign(campaignID int) (*types.CampaignD
 }
 
 func (svc *CampaignServiceImpl) ApproveRejectCampaign(campaignID int, updatedBy int) (*types.CampaignApproveRejectResponse, error) {
-	err := svc.repo.ApproveRejectCampaign(campaignID, updatedBy)
+	existingCampaign, err := svc.repo.ReadCampaignByIdAndStatus(campaignID, "Draft")
+	if err != nil {
+		return nil, err
+	}
+	if existingCampaign == nil {
+		return nil, errutil.ErrRecordNotFound
+	}
+	err = svc.repo.ApproveRejectCampaign(campaignID, updatedBy)
 	if err != nil {
 		return nil, err
 	}

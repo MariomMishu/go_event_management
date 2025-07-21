@@ -50,6 +50,6 @@ func (r *Route) Init() {
 	campaign.GET("/:id", r.campaignCtrl.GetCampaignById, r.authMiddleware.Authenticate(consts.PermissionCampaignFetch))
 	campaign.PUT("/:id", r.campaignCtrl.UpdateCampaign, r.authMiddleware.Authenticate(consts.PermissionCampaignUpdate))
 	campaign.DELETE("/:id", r.campaignCtrl.DeleteCampaign, r.authMiddleware.Authenticate(consts.PermissionCampaignDelete))
-	campaign.PUT("action/:id", r.campaignCtrl.ApproveRejectCampaign, r.authMiddleware.Authenticate(consts.PermissionCampaignApproveReject))
+	campaign.PUT("/action/:id", r.campaignCtrl.ApproveRejectCampaign, r.authMiddleware.Authenticate(consts.PermissionCampaignApproveReject))
 
 }

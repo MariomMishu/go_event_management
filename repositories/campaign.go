@@ -10,6 +10,7 @@ import (
 )
 
 func (repo *Repository) CreateCampaign(campaign *models.Campaign) (*models.Campaign, error) {
+	campaign.Status = "Draft"
 	qry := repo.db.Create(campaign)
 	if qry.Error != nil {
 		return nil, qry.Error
@@ -29,6 +30,18 @@ func (repo *Repository) ReadCampaignByTitle(title string) (bool, error) {
 func (repo *Repository) ReadCampaignById(id int) (*models.Campaign, error) {
 	var campaign models.Campaign
 	if err := repo.db.Model(&models.Campaign{}).Where("id = ?", id).First(&campaign).Error; err != nil {
+		return nil, err
+	}
+	return &campaign, nil
+
+}
+
+func (repo *Repository) ReadCampaignByIdAndStatus(id int, status string) (*models.Campaign, error) {
+	var campaign models.Campaign
+	if err := repo.db.
+		Model(&models.Campaign{}).
+		Where("id = ? AND status = ?", id, status).
+		First(&campaign).Error; err != nil {
 		return nil, err
 	}
 	return &campaign, nil
