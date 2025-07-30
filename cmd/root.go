@@ -1,13 +1,11 @@
 package cmd
 
 import (
-	"fmt"
-	"os"
-
 	"ems/config"
 	"ems/conn"
-
+	"fmt"
 	"github.com/spf13/cobra"
+	"os"
 )
 
 var (
@@ -31,7 +29,7 @@ func Execute() {
 	conn.ConnectDb()
 	conn.ConnectRedis()
 	conn.ConnectEmail()
-
+	conn.ConnectWorker()
 	if err := RootCmd.Execute(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)

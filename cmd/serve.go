@@ -1,18 +1,14 @@
 package cmd
 
 import (
+	"ems/config"
+	"ems/conn"
 	"ems/controllers"
 	"ems/middlewares"
+	db_repo "ems/repositories"
 	"ems/routes"
 	"ems/server"
-
 	"ems/services"
-
-	"ems/conn"
-	db_repo "ems/repositories"
-
-	"ems/config"
-
 	"github.com/labstack/echo/v4"
 	"github.com/spf13/cobra"
 )
@@ -28,6 +24,8 @@ func Serve(cmd *cobra.Command, args []string) {
 	dbClient := conn.Db()
 	redisClient := conn.Redis()
 	emailClient := conn.EmailClient()
+	//worker
+	workerPool := conn.WorkerPool()
 	// repositories
 	dbRepo := db_repo.NewRepository(dbClient)
 
@@ -35,7 +33,7 @@ func Serve(cmd *cobra.Command, args []string) {
 	userSvc := services.NewUserServiceImpl(dbRepo, redisSvc)
 	tokenSvc := services.NewTokenServiceImpl(redisSvc)
 	authSvc := services.NewAuthServiceImpl(userSvc, tokenSvc)
-	mailSvc := services.NewMailService(dbRepo, emailClient)
+	mailSvc := services.NewMailService(dbRepo, emailClient, workerPool)
 	campaignSvc := services.NewCampaignServiceImpl(dbRepo, mailSvc)
 
 	userCtrl := controllers.NewUserController(userSvc)
@@ -51,6 +49,6 @@ func Serve(cmd *cobra.Command, args []string) {
 	routes := routes.New(echoServer, userCtrl, authCtrl, campaignCtrl, authMiddleware)
 
 	routes.Init()
-	srv.Start()
+	srv.Start(workerPool)
 
 }

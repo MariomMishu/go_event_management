@@ -1,6 +1,8 @@
 package main
 
-import "ems/cmd"
+import (
+	"ems/cmd"
+)
 
 func main() {
 	cmd.Execute()

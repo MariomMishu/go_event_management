@@ -3,8 +3,9 @@ package config
 import "time"
 
 type AppConfig struct {
-	Name string
-	Port string
+	Name            string
+	Port            string
+	NumberOfWorkers int
 }
 type DbConfig struct {
 	Host            string
@@ -76,8 +77,9 @@ func LoadConfig() {
 }
 func setDefaultConfig() {
 	config.App = &AppConfig{
-		Name: "EMS",
-		Port: "8080",
+		Name:            "EMS",
+		Port:            "8080",
+		NumberOfWorkers: 5,
 	}
 	config.DB = &DbConfig{
 		Host:            "127.0.0.1",
@@ -106,7 +108,7 @@ func setDefaultConfig() {
 		RefreshTokenExpiry: 24 * time.Hour, // e.g. 24 hours
 	}
 	config.Email = &EmailConfig{
-		Url:     "https://webhook.site/86549bc1-3657-4bdc-bbcc-227e161e2305",
+		Url:     "https://webhook.site/99c222a6-f2d4-43d2-a0c3-d83d29d2287e",
 		Timeout: 10 * time.Second, // ✅ Customize timeout
 	}
 }
