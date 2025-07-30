@@ -2,7 +2,6 @@ package worker
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"sync"
 	"time"
@@ -118,40 +117,4 @@ func (p *Pool) startWorkers(ctx context.Context) {
 			}
 		}(i)
 	}
-}
-func main() {
-	// Create a pool with 3 workers and a task queue size of 10
-	pool := NewPool(3, 10)
-	pool.Start()
-
-	// Add 5 demo tasks
-	for i := 1; i <= 5; i++ {
-		taskNum := i // capture loop variable
-
-		// Sample Task: Fails 1st time, succeeds 2nd time
-		task := NewTask(
-			func() error {
-				if taskNum%2 == 0 {
-					fmt.Printf("Task %d succeeded\n", taskNum)
-					return nil
-				} else {
-					fmt.Printf("Task %d failed\n", taskNum)
-					return errors.New("simulated error")
-				}
-			},
-			func(err error) {
-				fmt.Printf("Task %d error handled: %v\n", taskNum, err)
-			},
-			2, // Max retries
-		)
-		pool.AddTask(task)
-	}
-
-	// Let workers finish tasks
-	time.Sleep(10 * time.Second)
-
-	// Stop the worker pool
-	pool.Stop()
-
-	fmt.Println("All workers stopped")
 }
