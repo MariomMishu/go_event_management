@@ -3,14 +3,17 @@ package services
 import (
 	"bytes"
 	"ems/config"
+	"ems/consts"
 	"ems/domain"
 	"ems/models"
 	"ems/types"
+	"ems/utils/errutil"
 	"ems/worker"
 	"encoding/json"
 	"fmt"
 	"github.com/labstack/gommon/log"
 	"net/http"
+	"time"
 )
 
 type MailService struct {
@@ -45,8 +48,7 @@ func (m *MailService) SendEmail(requestData types.EmailPayload) error {
 
 	resp, err := m.emailClient.Do(req)
 	if err != nil {
-		log.Printf("Failed to send email request: %v", err)
-		return err
+		return fmt.Errorf("error sending email to %s: %w", requestData.MailTo, err)
 	}
 	defer resp.Body.Close()
 
@@ -93,4 +95,58 @@ func (m *MailService) SendCampaignEmail(roleIds []int, campaign *models.Campaign
 		m.workerPool.AddTask(task)
 	}
 	return nil
+}
+
+func (m *MailService) EnqueueReminderEmailNotification(roleIds []int, campaign *models.Campaign) error {
+	startTime := campaign.StartTime
+	reminderTime := startTime.Add(-consts.ReminderInterval)
+	now := time.Now()
+
+	//Reminder time: 9:00 AM
+	//Current time: 9:30 AM
+	//Reminder time is already past, so skip sending the email.
+
+	if reminderTime.Before(now) {
+		log.Info("Reminder time is in the past, skipping reminder email :", campaign.Title)
+		return errutil.ErrReminderEmailNotEnqueued
+	}
+	timeLeftToSendReminderEmail := reminderTime.Sub(now)
+	schedular := worker.NewScheduler(timeLeftToSendReminderEmail)
+	schedular.Start(func() {
+		m.SendReminderEmail(roleIds, campaign)
+	})
+	time.Sleep(time.Duration(timeLeftToSendReminderEmail))
+	schedular.Stop()
+	return nil
+}
+
+func (m *MailService) SendReminderEmail(roleIds []int, campaign *models.Campaign) {
+	users, err := m.userRepo.ReadUsers(roleIds)
+	if err != nil {
+		if err == errutil.ErrRecordNotFound {
+			log.Printf("Failed to read users: %v", err)
+			return
+		}
+		log.Error(fmt.Sprintf("Failed to read users: %v", err))
+		return
+	}
+	for _, user := range users {
+		emailPayload := types.EmailPayload{
+			MailTo:  user.Email,
+			Subject: "Reminder: " + campaign.Title,
+			Body: map[string]interface{}{
+				"campaign_title":       campaign.Title,
+				"campaign_description": campaign.Description,
+				"campaign_remarks":     campaign.Remarks,
+				"campaign_startTime":   campaign.StartTime,
+				"campaign_endTime":     campaign.EndTime,
+			},
+		}
+		task := worker.NewTask(func() error {
+			return m.SendEmail(emailPayload)
+		}, func(err error) {
+			log.Error("Failed to send reminder email: ", err, "to user: ", user.Email)
+		}, 0)
+		m.workerPool.AddTask(task)
+	}
 }

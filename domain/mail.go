@@ -9,5 +9,7 @@ type (
 	MailService interface {
 		SendEmail(requestData types.EmailPayload) error
 		SendCampaignEmail(roleIds []int, campaign *models.Campaign) error
+		EnqueueReminderEmailNotification(roleIds []int, campaign *models.Campaign) error
+		SendReminderEmail(roleIds []int, campaign *models.Campaign)
 	}
 )

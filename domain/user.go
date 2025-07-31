@@ -13,6 +13,7 @@ type (
 		ReadUser(id int) (*models.User, error)
 		ReadPermissionsByRole(roleID int) ([]*models.Permission, error)
 	}
+
 	UserRepository interface {
 		CreateUser(user *models.User) (*models.User, error)
 		ReadUserById(id int) (*models.User, error)

@@ -1,6 +1,7 @@
 package services
 
 import (
+	"ems/consts"
 	"ems/domain"
 	"ems/models"
 	"ems/types"
@@ -8,6 +9,7 @@ import (
 	"ems/utils/msgutil"
 	"errors"
 	"fmt"
+	"github.com/labstack/gommon/log"
 	"time"
 )
 
@@ -150,7 +152,17 @@ func (svc *CampaignServiceImpl) logApprovalActivity(campaign *models.Campaign, u
 
 func (svc *CampaignServiceImpl) sendApprovalNotification(campaign *models.Campaign) error {
 	// Fetch campaign details (optional)
-	var roleIds = []int{2, 3}
+	var roleIds = []int{consts.RoleIdCustomer}
 	err := svc.mailSvc.SendCampaignEmail(roleIds, campaign)
+	if err != nil {
+		log.Error("Failed to send Campaign email", err)
+		return err
+	}
+	err = svc.mailSvc.EnqueueReminderEmailNotification(roleIds, campaign)
+	if err != nil {
+		log.Error("Failed to send Reminder email", err)
+		return err
+	}
+
 	return err
 }

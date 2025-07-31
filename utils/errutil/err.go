@@ -16,6 +16,7 @@ var (
 	ErrInvalidJwtSigningMethod   = errors.New("invalid jwt sig`ning method")
 	ErrParseJwt                  = errors.New("failed to parse JWT token")
 	ErrInvalidAccessToken        = errors.New("invalid access token")
+	ErrReminderEmailNotEnqueued  = errors.New("Reminder email notification not enqueued")
 )
 
 func Exists(err error, errs []error) bool {

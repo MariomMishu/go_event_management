@@ -1,5 +1,7 @@
 package consts
 
+import "time"
+
 const (
 	RoleIdAdmin    = iota + 1
 	RoleIdManager  = 2
@@ -24,6 +26,7 @@ const (
 	PermissionCampaignList          = "campaign.list"           // Permission to list all campaign
 	PermissionCampaignDelete        = "campaign.delete"         // Permission to delete a campaign
 	PermissionCampaignApproveReject = "campaign.approve_reject" // Permission to delete a campaign
+	ReminderInterval                = time.Duration(10 * time.Minute)
 )
 
 var RoleMap = map[int]string{
