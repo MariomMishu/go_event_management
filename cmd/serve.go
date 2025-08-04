@@ -5,7 +5,8 @@ import (
 	"ems/conn"
 	"ems/controllers"
 	"ems/middlewares"
-	db_repo "ems/repositories"
+	db_repo "ems/repositories/db"
+	"ems/repositories/mail"
 	"ems/routes"
 	"ems/server"
 	"ems/services"
@@ -28,12 +29,13 @@ func Serve(cmd *cobra.Command, args []string) {
 	workerPool := conn.WorkerPool()
 	// repositories
 	dbRepo := db_repo.NewRepository(dbClient)
+	mailRepo := mail.NewRepository(emailClient, config.Email())
 
 	redisSvc := services.NewRedisService(redisClient)
 	userSvc := services.NewUserServiceImpl(dbRepo, redisSvc)
 	tokenSvc := services.NewTokenServiceImpl(redisSvc)
 	authSvc := services.NewAuthServiceImpl(userSvc, tokenSvc)
-	mailSvc := services.NewMailService(dbRepo, emailClient, workerPool)
+	mailSvc := services.NewMailService(dbRepo, mailRepo, workerPool)
 	campaignSvc := services.NewCampaignServiceImpl(dbRepo, mailSvc)
 
 	userCtrl := controllers.NewUserController(userSvc)

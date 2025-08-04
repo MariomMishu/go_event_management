@@ -1,61 +1,38 @@
 package services
 
 import (
-	"bytes"
 	"ems/config"
 	"ems/domain"
 	"ems/models"
 	"ems/types"
 	"ems/worker"
-	"encoding/json"
 	"fmt"
 	"github.com/labstack/gommon/log"
-	"net/http"
+	"net/smtp"
+	"strings"
+	"time"
 )
 
 type MailService struct {
-	userRepo    domain.UserRepository
-	emailClient *http.Client
-	workerPool  *worker.Pool
+	userRepo   domain.UserRepository
+	mailRepo   domain.MailRepository
+	workerPool *worker.Pool
 }
 
-func NewMailService(userRepo domain.UserRepository, emailClient *http.Client, workerPool *worker.Pool) *MailService {
+func NewMailService(userRepo domain.UserRepository, mailRepo domain.MailRepository, workerPool *worker.Pool) *MailService {
 	return &MailService{
-		userRepo:    userRepo,
-		emailClient: emailClient,
-		workerPool:  workerPool,
+		userRepo:   userRepo,
+		mailRepo:   mailRepo,
+		workerPool: workerPool,
 	}
 }
 
 func (m *MailService) SendEmail(requestData types.EmailPayload) error {
-	reqURL := config.Email().Url
-
-	reqByte, err := json.Marshal(requestData)
+	err := m.mailRepo.SendEmail(&requestData)
 	if err != nil {
-		log.Printf("Failed to marshal email payload: %v", err)
+		log.Error("Failed to send email: ", err)
 		return err
 	}
-
-	req, err := http.NewRequest(http.MethodPost, reqURL, bytes.NewBuffer(reqByte))
-	if err != nil {
-		log.Printf("Failed to create email request: %v", err)
-		return err
-	}
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, err := m.emailClient.Do(req)
-	if err != nil {
-		log.Printf("Failed to send email request: %v", err)
-		return err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		log.Printf("Email service returned non-success status: %v", resp.Status)
-		return fmt.Errorf("email service returned non-success status: %v", resp.Status)
-	}
-
-	log.Infof("Email service responded with status [%v] for recipient: %v", resp.StatusCode, requestData.MailTo)
 	return nil
 }
 
@@ -93,4 +70,30 @@ func (m *MailService) SendCampaignEmail(roleIds []int, campaign *models.Campaign
 		m.workerPool.AddTask(task)
 	}
 	return nil
+}
+func SendEmailSMTP(to []string, subject, body string) error {
+	emailCfg := config.Email()
+
+	auth := smtp.PlainAuth("", emailCfg.Username, emailCfg.Password, emailCfg.Host)
+
+	msg := "From: " + emailCfg.Username + "\n" +
+		"To: " + strings.Join(to, ",") + "\n" +
+		"Subject: " + subject + "\n\n" +
+		body
+
+	addr := emailCfg.Host + ":" + emailCfg.Port
+
+	// Optional timeout handling (basic)
+	done := make(chan error, 1)
+	go func() {
+		err := smtp.SendMail(addr, auth, emailCfg.Username, to, []byte(msg))
+		done <- err
+	}()
+
+	select {
+	case err := <-done:
+		return err
+	case <-time.After(emailCfg.Timeout):
+		return fmt.Errorf("SMTP send timeout")
+	}
 }

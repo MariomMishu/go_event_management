@@ -31,6 +31,24 @@ type RedisConfig struct {
 	UserCacheTTL       time.Duration
 	PermissionCacheTTL time.Duration
 }
+type AsynqConfig struct {
+	RedisAddr                   string
+	DB                          int
+	Password                    string
+	Concurrency                 int
+	Queue                       string
+	Retention                   time.Duration
+	RetryCount                  int
+	Delay                       time.Duration
+	EmailSendTaskDelay          time.Duration
+	EmailSendTaskRetryCount     int
+	EmailSendTaskRetryDelay     time.Duration
+	ReminderTaskRetryCount      int
+	ReminderTaskRetryDelay      time.Duration
+	ReminderEmailTaskRetryCount int
+	ReminderEmailTaskRetryDelay time.Duration
+	ReminderEmailTaskDelay      time.Duration
+}
 type JwtConfig struct {
 	AccessTokenSecret  string
 	RefreshTokenSecret string
@@ -38,8 +56,13 @@ type JwtConfig struct {
 	RefreshTokenExpiry time.Duration
 }
 type EmailConfig struct {
-	Url     string
-	Timeout time.Duration
+	//Url     string
+	//Timeout time.Duration
+	Host     string        // e.g., smtp.gmail.com
+	Port     string        // e.g., 587
+	Username string        // e.g., your email address
+	Password string        // e.g., app password or real password
+	Timeout  time.Duration // optional
 }
 type Config struct {
 	App   *AppConfig
@@ -47,6 +70,7 @@ type Config struct {
 	Redis *RedisConfig
 	Jwt   *JwtConfig
 	Email *EmailConfig
+	Asynq *AsynqConfig
 }
 
 var config Config
@@ -67,6 +91,9 @@ func Jwt() *JwtConfig {
 	return config.Jwt
 }
 func Email() *EmailConfig { return config.Email }
+func Asynq() *AsynqConfig {
+	return config.Asynq
+}
 
 func LoadConfig() {
 	// Set defaults or load from env
@@ -99,6 +126,16 @@ func setDefaultConfig() {
 		Db:              0,
 		MandatoryPrefix: "event_managment_",
 	}
+	config.Asynq = &AsynqConfig{
+		RedisAddr:   "127.0.0.1:6379",
+		DB:          0,
+		Password:    "",
+		Concurrency: 10,
+		Queue:       "app",
+		Retention:   168,
+		RetryCount:  5,
+		Delay:       120,
+	}
 	// Initialize JwtConfig here:
 	config.Jwt = &JwtConfig{
 		AccessTokenSecret:  "your-access-secret",
@@ -108,7 +145,12 @@ func setDefaultConfig() {
 		RefreshTokenExpiry: 24 * time.Hour, // e.g. 24 hours
 	}
 	config.Email = &EmailConfig{
-		Url:     "https://webhook.site/99c222a6-f2d4-43d2-a0c3-d83d29d2287e",
-		Timeout: 10 * time.Second, // ✅ Customize timeout
+		Host:     "smtp.gmail.com",
+		Port:     "587",
+		Username: "mishu.cste08@gmail.com",
+		Password: "Abb@123456", // ⚠️ Use App Password for Gmail
+		Timeout:  10 * time.Second,
+		//Url:     "https://webhook.site/99c222a6-f2d4-43d2-a0c3-d83d29d2287e",
+		//Timeout: 10 * time.Second, // ✅ Customize timeout
 	}
 }

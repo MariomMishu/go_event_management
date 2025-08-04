@@ -10,4 +10,8 @@ type (
 		SendEmail(requestData types.EmailPayload) error
 		SendCampaignEmail(roleIds []int, campaign *models.Campaign) error
 	}
+
+	MailRepository interface {
+		SendEmail(requestData *types.EmailPayload) error
+	}
 )

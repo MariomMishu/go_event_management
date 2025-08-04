@@ -1,6 +1,8 @@
-package repositories
+package db
 
-import "ems/models"
+import (
+	"ems/models"
+)
 
 func (repo *Repository) CreateUser(user *models.User) (*models.User, error) {
 	err := repo.db.Create(user).Error
