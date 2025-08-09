@@ -6,6 +6,7 @@ import (
 	db_repo "ems/repositories/db"
 	mail_Repo "ems/repositories/mail"
 	"ems/services"
+	"ems/worker"
 	"github.com/hibiken/asynq"
 	"github.com/spf13/cobra"
 )
@@ -28,5 +29,5 @@ func runWorker(cmd *cobra.Command, args []string) {
 	//services
 	services.NewMailService(dbRepo, mailRepo, workerPool)
 	mux := asynq.NewServeMux()
-
+	worker.StartAsynqWorker(mux)
 }

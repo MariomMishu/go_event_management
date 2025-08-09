@@ -16,6 +16,7 @@ var (
 
 func init() {
 	RootCmd.AddCommand(serveCmd)
+	RootCmd.AddCommand(workerCmd)
 }
 
 // Execute executes the root command

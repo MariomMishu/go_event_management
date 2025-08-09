@@ -96,10 +96,6 @@ func Asynq() *AsynqConfig {
 }
 
 func LoadConfig() {
-	// Set defaults or load from env
-	// config.App = &AppConfig{
-	// 	Port: "8080", // or os.Getenv("PORT")
-	// }
 	setDefaultConfig()
 }
 func setDefaultConfig() {
@@ -113,7 +109,7 @@ func setDefaultConfig() {
 		Port:            "3306",
 		User:            "mariom",
 		Pass:            "password",
-		Schema:          "event_management",
+		Schema:          "campaign_notification_service",
 		MaxIdleConn:     1,
 		MaxOpenConn:     2,
 		MaxConnLifetime: 30,
@@ -124,7 +120,7 @@ func setDefaultConfig() {
 		Port:            "6379",
 		Pass:            "",
 		Db:              0,
-		MandatoryPrefix: "event_managment_",
+		MandatoryPrefix: "campaign_notification_",
 	}
 	config.Asynq = &AsynqConfig{
 		RedisAddr:   "127.0.0.1:6379",
@@ -148,9 +144,7 @@ func setDefaultConfig() {
 		Host:     "smtp.gmail.com",
 		Port:     "587",
 		Username: "mishu.cste08@gmail.com",
-		Password: "Abb@123456", // ⚠️ Use App Password for Gmail
+		Password: "guld gosd rxnx pkjb",
 		Timeout:  10 * time.Second,
-		//Url:     "https://webhook.site/99c222a6-f2d4-43d2-a0c3-d83d29d2287e",
-		//Timeout: 10 * time.Second, // ✅ Customize timeout
 	}
 }

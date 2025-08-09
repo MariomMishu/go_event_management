@@ -12,14 +12,16 @@ import (
 )
 
 type CampaignServiceImpl struct {
-	repo    domain.CampaignRepository
-	mailSvc domain.MailService
+	repo     domain.CampaignRepository
+	mailSvc  domain.MailService
+	asynqSvc domain.AsynqService
 }
 
-func NewCampaignServiceImpl(campaignRepo domain.CampaignRepository, mailSvc domain.MailService) *CampaignServiceImpl {
+func NewCampaignServiceImpl(campaignRepo domain.CampaignRepository, mailSvc domain.MailService, asynqSvc domain.AsynqService) *CampaignServiceImpl {
 	return &CampaignServiceImpl{
-		repo:    campaignRepo,
-		mailSvc: mailSvc,
+		repo:     campaignRepo,
+		mailSvc:  mailSvc,
+		asynqSvc: asynqSvc,
 	}
 }
 func (svc *CampaignServiceImpl) CreateCampaign(req *types.CampaignCreateRequest) (*types.CampaignCreateResponse, error) {
@@ -150,7 +152,8 @@ func (svc *CampaignServiceImpl) logApprovalActivity(campaign *models.Campaign, u
 
 func (svc *CampaignServiceImpl) sendApprovalNotification(campaign *models.Campaign) error {
 	// Fetch campaign details (optional)
-	var roleIds = []int{2, 3}
-	err := svc.mailSvc.SendCampaignEmail(roleIds, campaign)
+	var roleIds = []int{3}
+	//err := svc.mailSvc.SendCampaignEmail(roleIds, campaign)
+	err := svc.asynqSvc.AsynqTaskSendEmail(roleIds, campaign)
 	return err
 }
